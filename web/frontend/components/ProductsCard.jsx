@@ -70,7 +70,19 @@ export function ProductsCard() {
             TOTAL PRODUCTS in the store
             <DisplayText size="medium">
               <TextStyle variation="strong">
-                {isLoadingCount ? "-" : data.count}
+                {isLoadingCount ? "-" : data.productCount.count}
+              </TextStyle>
+            </DisplayText>
+          </Heading>
+        </TextContainer>
+
+        <TextContainer spacing="loose">
+          
+          <Heading element="h4">
+            TOTAL Orders in the store
+            <DisplayText size="medium">
+              <TextStyle variation="strong">
+                {isLoadingCount ? "-" : data.orderCount.count}
               </TextStyle>
             </DisplayText>
           </Heading>

@@ -23,7 +23,7 @@ const PROD_INDEX_PATH = `${process.cwd()}/frontend/dist/`;
 
 const DB_PATH = `${process.cwd()}/database.sqlite`;
 
-Shopify.Context.initialize({
+ Shopify.Context.initialize({
   API_KEY: process.env.SHOPIFY_API_KEY,
   API_SECRET_KEY: process.env.SHOPIFY_API_SECRET,
   SCOPES: process.env.SCOPES.split(","),
@@ -110,9 +110,14 @@ export async function createServer(
     const { Product } = await import(
       `@shopify/shopify-api/dist/rest-resources/${Shopify.Context.API_VERSION}/index.js`
     );
+    const { Order } = await import(
+      `@shopify/shopify-api/dist/rest-resources/${Shopify.Context.API_VERSION}/index.js`
+    );
 
     const countData = await Product.count({ session });
-    res.status(200).send(countData);
+    const orderCount = await Order.count({session});
+  
+    res.status(200).send({"productCount":countData, orderCount});
   });
 
   app.get("/api/products/create", async (req, res) => {
