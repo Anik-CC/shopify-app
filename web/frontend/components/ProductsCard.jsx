@@ -14,20 +14,27 @@ export function ProductsCard() {
   const [isLoading, setIsLoading] = useState(true);
   const [toastProps, setToastProps] = useState(emptyToastProps);
   const fetch = useAuthenticatedFetch();
+  const [element,setElement] = useState(true);
 
   const {
     data,
     refetch: refetchProductCount,
     isLoading: isLoadingCount,
     isRefetching: isRefetchingCount,
+    
   } = useAppQuery({
     url: "/api/products/count",
     reactQueryOptions: {
-      onSuccess: () => {
+      onSuccess: (data) => {
+        
         setIsLoading(false);
+        setElement(data.productDetails)
       },
     },
   });
+
+
+
 
   const toastMarkup = toastProps.content && !isRefetchingCount && (
     <Toast {...toastProps} onDismiss={() => setToastProps(emptyToastProps)} />
@@ -35,7 +42,7 @@ export function ProductsCard() {
 
   const handlePopulate = async () => {
     setIsLoading(true);
-    const response = await fetch("/api/products/create");
+    const response = await fetch("/products/change/7676771238122");
 
     if (response.ok) {
       await refetchProductCount();
@@ -50,6 +57,7 @@ export function ProductsCard() {
   };
 
   return (
+   
     <>
       {toastMarkup}
       <Card
@@ -87,6 +95,9 @@ export function ProductsCard() {
             </DisplayText>
           </Heading>
         </TextContainer>
+
+        
+        
       </Card>
     </>
   );

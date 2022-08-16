@@ -1,6 +1,7 @@
 // @ts-check
 import { join } from "path";
 import fs from "fs";
+
 import express from "express";
 import cookieParser from "cookie-parser";
 import { Shopify, LATEST_API_VERSION } from "@shopify/shopify-api";
@@ -14,7 +15,7 @@ import { AppInstallations } from "./app_installations.js";
 
 const USE_ONLINE_TOKENS = false;
 const TOP_LEVEL_OAUTH_COOKIE = "shopify_top_level_oauth";
-
+import fetch from 'node-fetch';
 const PORT = parseInt(process.env.BACKEND_PORT || process.env.PORT, 10);
 
 // TODO: There should be provided by env vars
@@ -22,6 +23,8 @@ const DEV_INDEX_PATH = `${process.cwd()}/frontend/`;
 const PROD_INDEX_PATH = `${process.cwd()}/frontend/dist/`;
 
 const DB_PATH = `${process.cwd()}/database.sqlite`;
+
+
 
  Shopify.Context.initialize({
   API_KEY: process.env.SHOPIFY_API_KEY,
@@ -37,10 +40,14 @@ const DB_PATH = `${process.cwd()}/database.sqlite`;
 
 Shopify.Webhooks.Registry.addHandler("APP_UNINSTALLED", {
   path: "/api/webhooks",
+  
   webhookHandler: async (_topic, shop, _body) => {
     await AppInstallations.delete(shop)
   },
 });
+
+
+
 
 // The transactions with Shopify will always be marked as test transactions, unless NODE_ENV is production.
 // See the ensureBilling helper to learn more about billing in this template.
@@ -114,12 +121,105 @@ export async function createServer(
       `@shopify/shopify-api/dist/rest-resources/${Shopify.Context.API_VERSION}/index.js`
     );
 
+    const { Customer } = await import(
+      `@shopify/shopify-api/dist/rest-resources/${Shopify.Context.API_VERSION}/index.js`
+    );
+    
+    
     const countData = await Product.count({ session });
     const orderCount = await Order.count({session});
+    const customerCount = await Customer.count({session});
+    const productDetails = await Product.all({session})
+
+
+    const productID = fs.readFileSync("../practice/product.json",
+            {encoding:'utf8', flag:'r'});
+
+   
+    // console.log(session)
+
+    //console.log(customerCount)
   
-    res.status(200).send({"productCount":countData, orderCount});
+    res.status(200).send({"productCount":countData, orderCount, customerCount, productDetails, productID});
   });
 
+
+  app.get("/api/products/change/:id", async(req,res)=>{
+
+    const session = await Shopify.Utils.loadCurrentSession(
+      req,
+      res,
+      app.get("use-online-tokens")
+    );
+    //console.log(session)
+ 
+    const productID = req.params.id
+    const data = {"productID":productID}
+    fs.writeFile("../practice/product.json", JSON.stringify(data), err => {
+      if (err) console.log("Error writing file:", err);
+    });
+
+    res.status(201).send({productID})
+  })
+
+  // Orders list
+
+  app.get("/api/orders", async (req, res) => {
+    const session = await Shopify.Utils.loadCurrentSession(
+      req,
+      res,
+      app.get("use-online-tokens")
+    );
+  
+    const { Order } = await import(
+      `@shopify/shopify-api/dist/rest-resources/${Shopify.Context.API_VERSION}/index.js`
+    );
+   
+
+    const order = await Order.all({session});
+
+  
+    res.status(200).send({order});
+  });
+
+  // get the meta tag for each orders
+
+  app.get("/api/order/metacheck/:id", async(req, res)=>{
+    const session = await Shopify.Utils.loadCurrentSession(
+      req,
+      res,
+      app.get("use-online-tokens")
+    );
+
+    const { Metafield } = await import(
+      `@shopify/shopify-api/dist/rest-resources/${Shopify.Context.API_VERSION}/index.js`
+    );
+  const orderID = req.params.id
+    /* const metafilds = await Metafield.orderFind({
+      session:session,
+     
+      urlIds:{"order_id":orderID},
+    
+    }) */
+  
+    
+      fetch(`https://anik-devstore.myshopify.com/admin/api/2022-07/orders/${orderID}/metafields.json`,{
+      method: "GET",
+      headers: { 
+        'X-Shopify-Access-Token': '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'
+      }
+    }).then(res => res.json()).then(text => res.status(200).send({text,orderID}));
+
+    
+
+  //  res.status(200).send({metafilds, orderID})
+
+  })
+
+
+
+
+  
   app.get("/api/products/create", async (req, res) => {
     const session = await Shopify.Utils.loadCurrentSession(
       req,
