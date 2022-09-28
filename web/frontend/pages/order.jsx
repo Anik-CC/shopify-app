@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Card, Page, Layout, TextContainer, Heading, DisplayText, TextStyle} from "@shopify/polaris";
 import { TitleBar,Toast } from "@shopify/app-bridge-react";
 import { useAppQuery, useAuthenticatedFetch } from "../hooks";
+import { FragmentsOnCompositeTypesRule } from "graphql";
 
 
 
@@ -121,6 +122,22 @@ export default function PageName() {
     
   };
 
+  const getDate = (date)=>{
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"
+  ];
+  
+    var today = new Date(date);
+    var dd = String(today.getDate()).padStart(2, '0');
+    var mm = monthNames[today.getMonth()]; //January is 0!
+    var yyyy = today.getFullYear();
+    
+    today =dd+'-'+mm+'-'+yyyy;
+    return today
+    console.log(today);
+  
+  }
+
   return (
     <Page>
       {toastMarkup}
@@ -154,11 +171,11 @@ export default function PageName() {
               <tr>
                 <th>Order ID</th>
                 <th>Email</th>
-                <th>Action</th>
+                <th>Created At</th>
               
             {isLoadingCount}
               </tr>
-              {isLoadingCount ? "⌛" :  Array.isArray(element) ? element.map((el,index)=><tr key={index}><td key={index}>{el.order_number}</td><td >{el.contact_email}</td> <td key={index}><button key={index} onClick={()=>{handlePopulate(el.id)}}>{isLoading ? "⌛": "Choose This"}</button></td></tr>): "⌛"}
+              {isLoadingCount ? "⌛" :  Array.isArray(element) ? element.map((el,index)=><tr key={index}><td key={index}>{el.order_number}</td><td >{el.contact_email}</td> <td key={index}>{getDate(el.created_at)}</td></tr>): "⌛"}
               </tbody>
               </thead>
             </table>

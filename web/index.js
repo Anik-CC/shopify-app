@@ -202,7 +202,7 @@ export async function createServer(
     
     }) */
   
-    
+      console.log(process.env.SHOP)
       fetch(`https://anik-devstore.myshopify.com/admin/api/2022-07/orders/${orderID}/metafields.json`,{
       method: "GET",
       headers: { 
